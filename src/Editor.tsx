@@ -70,6 +70,30 @@ export function Editor() {
     };
   }, [editor]);
 
+  // Ctrl+S to save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+        saveEditorToURL(editor, keydownFlag.current);
+        notifications.show({
+          title: "Saved",
+          autoClose: 1500,
+          message:
+            "Your document has been saved to the URL. You can now share it with others.",
+        });
+      } else {
+        keydownFlag.current = false;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [editor]);
+
   // Save editor content to URL when debounced content changes
   useEffect(() => {
     saveEditorToURL(editor, keydownFlag.current);
@@ -90,6 +114,7 @@ export function Editor() {
                 saveEditorToURL(editor, keydownFlag.current);
                 notifications.show({
                   title: "Saved",
+                  autoClose: 1500,
                   message:
                     "Your document has been saved to the URL. You can now share it with others.",
                 });
