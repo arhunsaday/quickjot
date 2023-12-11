@@ -3,8 +3,7 @@ import { RichTextEditor, Link } from "@mantine/tiptap";
 import { useEditor } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
 import { notifications } from "@mantine/notifications";
-import { useClipboard } from "@mantine/hooks";
-import { IconMoonStars, IconSun } from "@tabler/icons-react";
+import { useClipboard, useDebouncedValue } from "@mantine/hooks";
 import { placeholderContent, zipurl, unzipurl, formatTimestamp } from "./utils";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
@@ -18,8 +17,6 @@ import {
 import { ThemeToggle } from "./components/ThemeToggle";
 
 export function Editor() {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const dark = colorScheme === "dark";
   const clipboard = useClipboard({ timeout: 500 });
 
   const [lastSavedTime, setLastSavedTime] = useState<number | null>(null);
@@ -29,10 +26,14 @@ export function Editor() {
   function saveEditorToURL(editor: any, keydownFlag: boolean) {
     if (!keydownFlag) keydownFlag = true;
     let state = zipurl(editor?.getHTML() || "");
-
     window.location.hash = state;
     setLastSavedTime(Date.now());
   }
+
+  // Initial content from URL
+  const initialContent = window.location.hash
+    ? unzipurl(window.location.hash.substring(1))
+    : "";
 
   // Configure editor
   const editor = useEditor({
@@ -41,33 +42,31 @@ export function Editor() {
       Placeholder.configure({ placeholder: placeholderContent }),
       Link,
     ],
-    content: "",
+    content: initialContent,
   });
 
-  // Retrieve editor content from URL
-  useEffect(() => {
-    if (window.location.hash) {
-      editor?.commands.setContent(unzipurl(window.location.hash.substring(1)));
-    }
-  }, [editor]);
+  const [content, setContent] = useState("");
+  const [debouncedContent] = useDebouncedValue(content, 1000); // 1000ms debounce time
 
-  // Ctrl+S to save
+  // Update content state whenever the editor's content changes
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "s") {
-        e.preventDefault();
-        saveEditorToURL(editor, keydownFlag.current);
-      } else {
-        keydownFlag.current = false;
-      }
+    if (!editor) return;
+
+    const handleContentUpdate = () => {
+      setContent(editor.getHTML());
     };
 
-    document.addEventListener("keydown", handleKeyDown);
+    editor.on("update", handleContentUpdate);
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      editor.off("update", handleContentUpdate);
     };
   }, [editor]);
+
+  // Save editor content to URL when debounced content changes
+  useEffect(() => {
+    saveEditorToURL(editor, keydownFlag.current);
+  }, [debouncedContent, editor]);
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
