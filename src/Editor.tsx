@@ -15,6 +15,7 @@ import {
   Text,
   useMantineColorScheme,
 } from "@mantine/core";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 export function Editor() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
@@ -105,14 +106,7 @@ export function Editor() {
                 : "Not saved yet"}
             </Text>
           </Group>
-          <ActionIcon
-            variant="outline"
-            color={dark ? "yellow" : "blue"}
-            onClick={() => toggleColorScheme()}
-            title="Toggle color scheme"
-          >
-            {dark ? <IconSun size="1.1rem" /> : <IconMoonStars size="1.1rem" />}
-          </ActionIcon>
+          <ThemeToggle />
         </Flex>
 
         <RichTextEditor.Toolbar sticky>
