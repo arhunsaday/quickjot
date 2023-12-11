@@ -1,20 +1,17 @@
-import StarterKit from "@tiptap/starter-kit";
-import { RichTextEditor, Link } from "@mantine/tiptap";
-import { useEditor } from "@tiptap/react";
-import { useEffect, useRef, useState } from "react";
-import { notifications } from "@mantine/notifications";
-import { useClipboard, useDebouncedValue } from "@mantine/hooks";
-import { placeholderContent, zipurl, unzipurl, formatTimestamp } from "./utils";
-import Placeholder from "@tiptap/extension-placeholder";
+import { Button, Flex, Group, Text, TextInput } from "@mantine/core";
 import {
-  ActionIcon,
-  Button,
-  Flex,
-  Group,
-  Text,
-  useMantineColorScheme,
-} from "@mantine/core";
+  useClipboard,
+  useDebouncedValue,
+  useDocumentTitle,
+} from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
+import { Link, RichTextEditor } from "@mantine/tiptap";
+import Placeholder from "@tiptap/extension-placeholder";
+import { useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { formatTimestamp, placeholderContent, unzipurl, zipurl } from "./utils";
 
 export function Editor() {
   const clipboard = useClipboard({ timeout: 500 });
@@ -22,18 +19,28 @@ export function Editor() {
   const [lastSavedTime, setLastSavedTime] = useState<number | null>(null);
   let keydownFlag = useRef(false);
 
+  // Parse URL for initial content and title
+  const queryParams = new URLSearchParams(window.location.search);
+  const initialContent = window.location.hash
+    ? unzipurl(window.location.hash.substring(1))
+    : "";
+  const initialTitle = queryParams.get("title") || "";
+
+  // Set document title
+  const [title, setTitle] = useState(initialTitle);
+  useDocumentTitle(title);
+
   // Save editor content to URL
   function saveEditorToURL(editor: any, keydownFlag: boolean) {
     if (!keydownFlag) keydownFlag = true;
     let state = zipurl(editor?.getHTML() || "");
-    window.location.hash = state;
+    window.history.pushState(
+      null,
+      "",
+      `?title=${encodeURIComponent(title)}#${state}`
+    );
     setLastSavedTime(Date.now());
   }
-
-  // Initial content from URL
-  const initialContent = window.location.hash
-    ? unzipurl(window.location.hash.substring(1))
-    : "";
 
   // Configure editor
   const editor = useEditor({
@@ -46,7 +53,7 @@ export function Editor() {
   });
 
   const [content, setContent] = useState("");
-  const [debouncedContent] = useDebouncedValue(content, 1000); // 1000ms debounce time
+  const [debouncedContent] = useDebouncedValue(content, 1000);
 
   // Update content state whenever the editor's content changes
   useEffect(() => {
@@ -66,13 +73,18 @@ export function Editor() {
   // Save editor content to URL when debounced content changes
   useEffect(() => {
     saveEditorToURL(editor, keydownFlag.current);
-  }, [debouncedContent, editor]);
+  }, [debouncedContent, editor, title]);
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
       <RichTextEditor editor={editor}>
-        <Flex justify="space-between" p="md">
+        <Flex justify="space-between" p="md" pb={0}>
           <Group>
+            <TextInput
+              value={title}
+              onChange={(event) => setTitle(event.currentTarget.value)}
+              placeholder="Document Title"
+            />
             <Button
               onClick={() => {
                 saveEditorToURL(editor, keydownFlag.current);
@@ -99,11 +111,6 @@ export function Editor() {
             >
               Share note
             </Button>
-            <Text>
-              {lastSavedTime
-                ? `Last saved: ${formatTimestamp(lastSavedTime)}`
-                : "Not saved yet"}
-            </Text>
           </Group>
           <ThemeToggle />
         </Flex>
@@ -145,6 +152,14 @@ export function Editor() {
         </RichTextEditor.Toolbar>
 
         <RichTextEditor.Content style={{ minHeight: "80vh" }} />
+
+        <Flex justify="flex-end" p="sm">
+          <Text color="gray">
+            {lastSavedTime
+              ? `Last saved: ${formatTimestamp(lastSavedTime)}`
+              : "Not saved yet"}
+          </Text>
+        </Flex>
       </RichTextEditor>
     </div>
   );
