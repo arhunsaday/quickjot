@@ -10,8 +10,13 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState } from "react";
-import { ThemeToggle } from "./components/ThemeToggle";
-import { formatTimestamp, placeholderContent, unzipurl, zipurl } from "./utils";
+import { ThemeToggle } from "./ThemeToggle";
+import {
+  formatTimestamp,
+  placeholderContent,
+  unzipurl,
+  zipurl,
+} from "../utils";
 
 export function Editor() {
   const clipboard = useClipboard({ timeout: 500 });

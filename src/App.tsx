@@ -1,4 +1,4 @@
-import { Editor } from "./Editor";
+import { Editor } from "./components/Editor";
 import { Notifications } from "@mantine/notifications";
 import { useLocalStorage } from "@mantine/hooks";
 import {
