@@ -97,7 +97,7 @@ export function Editor() {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [editor]);
+  }, [editor, title]);
 
   // Save editor content to URL when debounced content changes
   useEffect(() => {
