@@ -1,0 +1,281 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * shadcn/ui's neutral base, with one deliberate change: `--primary` carries the
+ * violet from the app icon (a yellow pencil over a violet underline) instead of
+ * neutral's monochrome default, and the pencil yellow becomes the accent used
+ * for highlight marks and the unsaved indicator.
+ */
+:root {
+  --radius: 0.625rem;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.554 0.219 292.7);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.554 0.219 292.7);
+
+  --pencil: oklch(0.869 0.157 91.6);
+  --pencil-foreground: oklch(0.216 0.026 91.6);
+  --success: oklch(0.63 0.13 165);
+  --warning: oklch(0.75 0.16 70);
+}
+
+.dark {
+  --background: oklch(0.155 0.004 285);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.205 0.004 285);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.215 0.004 285);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.68 0.18 292.7);
+  --primary-foreground: oklch(0.17 0.02 292.7);
+  --secondary: oklch(0.27 0.004 285);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.27 0.004 285);
+  --muted-foreground: oklch(0.7 0.004 285);
+  --accent: oklch(0.32 0.006 285);
+  --accent-foreground: oklch(0.97 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.97 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.68 0.18 292.7);
+
+  --pencil: oklch(0.82 0.15 91.6);
+  --pencil-foreground: oklch(0.2 0.024 91.6);
+  --success: oklch(0.72 0.13 165);
+  --warning: oklch(0.8 0.15 70);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-pencil: var(--pencil);
+  --color-pencil-foreground: var(--pencil-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto,
+    "Helvetica Neue", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    @apply bg-primary/25;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Document typography.
+
+   Built on @tailwindcss/typography so the editor and the read-only view share
+   one definition — a shared note renders for the reader exactly as it looked to
+   whoever wrote it.
+   --------------------------------------------------------------------------- */
+
+.qj-document {
+  @apply prose prose-neutral dark:prose-invert max-w-none;
+  @apply prose-headings:tracking-tight prose-headings:font-semibold;
+  @apply prose-pre:bg-muted prose-pre:text-foreground prose-pre:border prose-pre:border-border;
+  @apply prose-blockquote:border-l-primary prose-blockquote:not-italic;
+  @apply prose-a:text-primary prose-a:underline-offset-2;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.qj-document :where(code):not(:where(pre code)) {
+  @apply bg-muted border-border rounded border px-1 py-0.5 text-[0.86em] font-normal;
+}
+
+/* Typography adds these pseudo-element quotes around inline code. */
+.qj-document :where(code):not(:where(pre code))::before,
+.qj-document :where(code):not(:where(pre code))::after {
+  content: none;
+}
+
+.qj-document mark {
+  @apply bg-pencil text-pencil-foreground rounded-sm px-0.5;
+}
+
+.qj-document :focus-visible {
+  outline: none;
+}
+
+/* Tiptap renders the placeholder on the first empty block only. */
+.qj-document p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-muted-foreground pointer-events-none float-left h-0;
+}
+
+.qj-document .ProseMirror-selectednode {
+  @apply outline-primary rounded-sm outline-2;
+}
+
+/* ---------------------------------------------------------------------------
+   Syntax highlighting. Mantine used to supply these; now they are ours, so
+   they follow the theme tokens in both light and dark.
+   --------------------------------------------------------------------------- */
+
+.hljs-comment,
+.hljs-quote {
+  @apply text-muted-foreground italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-type {
+  @apply text-primary font-medium;
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute {
+  color: oklch(0.55 0.14 150);
+}
+
+.dark .hljs-string,
+.dark .hljs-regexp,
+.dark .hljs-addition,
+.dark .hljs-attribute {
+  color: oklch(0.78 0.14 155);
+}
+
+.hljs-number,
+.hljs-symbol,
+.hljs-meta,
+.hljs-built_in,
+.hljs-builtin-name {
+  color: oklch(0.58 0.15 40);
+}
+
+.dark .hljs-number,
+.dark .hljs-symbol,
+.dark .hljs-meta,
+.dark .hljs-built_in,
+.dark .hljs-builtin-name {
+  color: oklch(0.8 0.13 60);
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: oklch(0.52 0.17 265);
+}
+
+.dark .hljs-title,
+.dark .hljs-section,
+.dark .hljs-name,
+.dark .hljs-selector-id,
+.dark .hljs-selector-class {
+  color: oklch(0.78 0.12 255);
+}
+
+.hljs-deletion {
+  @apply text-destructive;
+}
+
+.hljs-emphasis {
+  @apply italic;
+}
+
+.hljs-strong {
+  @apply font-semibold;
+}
+
+/* ---------------------------------------------------------------------------
+   Print: hand the reader the note, not the app.
+   --------------------------------------------------------------------------- */
+
+@media print {
+  .qj-no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .qj-document {
+    font-size: 11pt;
+  }
+
+  .qj-document a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #555;
+  }
+
+  .qj-document :where(h1, h2, h3) {
+    break-after: avoid;
+  }
+
+  .qj-document :where(pre, blockquote) {
+    break-inside: avoid;
+  }
+}

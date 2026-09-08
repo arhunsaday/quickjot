@@ -1,13 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/quickjot.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QuickJot</title>
+    <meta
+      name="description"
+      content="A serverless notepad. Write a note and the whole thing is compressed into its own URL — nothing is stored on a server."
+    />
+    <link rel="icon" type="image/png" href="/quickjot.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a1b1e" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
   </head>
   <body>
     <div id="root"></div>
+    <noscript>QuickJot needs JavaScript: the note is decoded from the URL in your browser.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
