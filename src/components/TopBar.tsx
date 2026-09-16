@@ -1,7 +1,6 @@
 import {
   Clock3,
   Download,
-  Ellipsis,
   EllipsisVertical,
   FileCode2,
   FileDown,
@@ -15,8 +14,8 @@ import {
   Save,
   Share2,
   SlidersHorizontal,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,31 +23,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface Props {
-  title: string;
-  sidebarExpanded: boolean;
-  onAbout: () => void;
-  encrypted: boolean;
-  markdownMode: boolean;
-  onSave: () => void;
-  onShare: () => void;
-  onHistory: () => void;
-  onLock: () => void;
-  onExportMarkdown: () => void;
-  onExportHtml: () => void;
-  onImport: () => void;
-  onShortcuts: () => void;
-  onFocusMode: () => void;
-  onSidebarToggle: () => void;
-  onMarkdownMode: () => void;
-  onWritingPreferences: () => void;
+  title: string
+  sidebarExpanded: boolean
+  onAbout: () => void
+  encrypted: boolean
+  markdownMode: boolean
+  onSave: () => void
+  onShare: () => void
+  onHistory: () => void
+  onLock: () => void
+  onExportMarkdown: () => void
+  onExportHtml: () => void
+  onImport: () => void
+  onShortcuts: () => void
+  onFocusMode: () => void
+  onSidebarToggle: () => void
+  onMarkdownMode: () => void
+  onWritingPreferences: () => void
 }
 
 export function TopBar({
@@ -90,9 +85,7 @@ export function TopBar({
           <TooltipContent>Editor sidebar</TooltipContent>
         </Tooltip>
         <div className="bg-border hidden h-5 w-px sm:block" />
-        <span className="truncate text-sm font-medium">
-          {title.trim() || "Untitled note"}
-        </span>
+        <span className="truncate text-sm font-medium">{title.trim() || 'Untitled note'}</span>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
         <Tooltip>
@@ -111,12 +104,7 @@ export function TopBar({
         </Tooltip>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="rounded-lg"
-              aria-label="More actions"
-            >
+            <Button variant="ghost" size="icon-sm" className="rounded-lg" aria-label="More actions">
               <EllipsisVertical className="size-[18px]" />
             </Button>
           </DropdownMenuTrigger>
@@ -128,7 +116,7 @@ export function TopBar({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onLock}>
               {encrypted ? <Lock /> : <LockOpen />}
-              {encrypted ? "Password protection" : "Protect with password"}
+              {encrypted ? 'Password protection' : 'Protect with password'}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onHistory}>
               <Clock3 />
@@ -152,7 +140,7 @@ export function TopBar({
             <DropdownMenuLabel>Writing</DropdownMenuLabel>
             <DropdownMenuItem onClick={onMarkdownMode}>
               <FileCode2 />
-              {markdownMode ? "Switch to rich text" : "Edit Markdown source"}
+              {markdownMode ? 'Switch to rich text' : 'Edit Markdown source'}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onWritingPreferences}>
               <SlidersHorizontal />
@@ -195,5 +183,5 @@ export function TopBar({
         </Button>
       </div>
     </header>
-  );
+  )
 }

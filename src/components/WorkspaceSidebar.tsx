@@ -1,17 +1,7 @@
 import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { cn } from "cn";
-import {
-  ChevronRight,
-  Clock3,
-  FileCode2,
-  FileText,
-  Hash,
-  Keyboard,
-  Plus,
-  ShieldCheck,
-  Type,
-} from "lucide-react";
+import { Hash, Keyboard, Plus, ShieldCheck } from "lucide-react";
 import type { WritingPreferences } from "@/lib/writing-preferences";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "./ui/button";
@@ -77,10 +67,6 @@ function Outline({
 
 export function WorkspaceSidebar({
   editor,
-  title,
-  markdownMode,
-  onModeChange,
-  onHistory,
   onNewNote,
   onShortcuts,
   onNavigate,
@@ -141,17 +127,17 @@ export function WorkspaceSidebar({
             <ChevronRight className="size-3.5 opacity-50" />
           </button>
         </nav> */}
-        {/* <section aria-label="Editor mode">
+        <section aria-label="Editor mode">
           <p className="qj-sidebar-label">Editor</p>
           <div className="bg-muted/70 grid grid-cols-2 gap-1 rounded-xl border p-1">
             <button
               type="button"
               aria-pressed={!markdownMode}
               className={cn(
-                'flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors',
+                "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors",
                 !markdownMode
-                  ? 'bg-background text-foreground shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground',
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground",
               )}
               onClick={() => onModeChange(false)}
             >
@@ -162,10 +148,10 @@ export function WorkspaceSidebar({
               type="button"
               aria-pressed={markdownMode}
               className={cn(
-                'flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors',
+                "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors",
                 markdownMode
-                  ? 'bg-background text-foreground shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground',
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground",
               )}
               onClick={() => onModeChange(true)}
             >
@@ -173,7 +159,7 @@ export function WorkspaceSidebar({
               Markdown
             </button>
           </div>
-        </section> */}
+        </section>
         <section>
           {/* <p className="qj-sidebar-label">On this page</p> */}
           {editor && <Outline editor={editor} onNavigate={onNavigate} />}
