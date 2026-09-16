@@ -1,12 +1,8 @@
 # QuickJot
 
-A notepad with no server. You write a note, and the whole thing — text,
-formatting, title — is compressed and encoded into the page's own URL. Share
-the link and you have shared the document; there is no database, no account and
-nothing stored anywhere on your behalf.
+A notepad with two ways to save: self-contained link snapshots, or persistent live notes with collaboration. Optional AI editing uses your own OpenAI or Anthropic key.
 
-The payload lives in the URL **fragment**, which browsers never transmit, so
-even the host serving the app never sees a note.
+Snapshots keep the entire document in a compressed URL fragment, with optional password encryption. Live notes use stable random links and a Node backend with SQLite; the host stores their unlocked content. No account is required.
 
 ## Features
 
@@ -36,7 +32,7 @@ even the host serving the app never sees a note.
   survive being pasted into a chat client or a QR code.
 - **Read-only sharing** (`?view=read`) — a clean page for recipients.
 - **Export / import** `.md` and `.html`, plus a QR code for the link.
-- **Installable PWA**, fully offline. It has no backend to be offline from.
+- **Installable PWA** — offline snapshots and locally cached live-note drafts.
 - Light, dark and system themes; keyboard shortcuts (press <kbd>⌘/</kbd>);
   focus mode; a print stylesheet.
 
@@ -56,8 +52,20 @@ pnpm dev
 | `pnpm lint` | Lint and format check |
 | `pnpm format` | Apply lint and format fixes |
 
-Because every note is a URL against the app shell, any static host works as
-long as unknown paths fall back to `index.html`.
+Static hosts (including Vercel static deployments) support snapshot notes. Persistent notes and AI require the Node backend; see [deployment instructions](docs/deployment.md).
+
+## Persistent notes and AI
+
+- Stable live links with synchronized title/body, collaborator carets and presence.
+- Separate owner, editor and viewer capabilities enforced by the backend; rotate invitation links to revoke old access.
+- SQLite persistence, 30-day expiry with owner extension, bounded recovery history, snapshot conversion and deletion.
+- IndexedDB drafts and reconnection through Hocuspocus/Yjs. Markdown source is a read-only preview in live mode to avoid overwriting concurrent edits; create a snapshot to edit source.
+- OpenAI (default) or Anthropic BYOK, manual model selection, streaming proposals, cancellation, preview, guarded replacement, insertion and copy. Keys stay in browser/server memory for the request and are never stored in notes, URLs, history or the database. Chosen text and keys pass through the backend to the provider; provider usage is charged to the key owner.
+- A proposal cannot replace text if the document has changed since generation began. In that case, insert at the current cursor or copy the proposal.
+
+Recent live-note links are kept on this device, including management access for notes you own. Protect the owner link; anyone holding it can delete the note or replace invitation links. Live notes do not inherit snapshot password encryption.
+
+Run `pnpm dev` for the frontend and backend, `pnpm dev:web` for frontend-only development, `pnpm test:server` for backend tests, and `pnpm start` to serve the production build and APIs. Node 24 or newer is required.
 
 ## The URL format
 

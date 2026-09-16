@@ -1,0 +1,13 @@
+services:
+  quickjot:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:3001}
+      MAX_ROOMS: ${MAX_ROOMS:-10000}
+    volumes:
+      - notes:/data
+    restart: unless-stopped
+volumes:
+  notes:

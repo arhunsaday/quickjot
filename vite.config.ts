@@ -5,6 +5,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  server: {
+    proxy: {
+      '/api': 'http://127.0.0.1:3001',
+      '/collaboration': { target: 'ws://127.0.0.1:3001', ws: true },
+    },
+  },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
@@ -17,7 +23,7 @@ export default defineConfig({
       manifest: {
         name: 'QuickJot',
         short_name: 'QuickJot',
-        description: 'A serverless notepad. Your note lives entirely in its own URL.',
+        description: 'Write self-contained notes or collaborate on live documents.',
         theme_color: '#1a1b1e',
         background_color: '#ffffff',
         display: 'standalone',
@@ -32,6 +38,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         // Every note is a URL against the app shell, so all navigations resolve to it.
         navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/collaboration/],
       },
     }),
   ],

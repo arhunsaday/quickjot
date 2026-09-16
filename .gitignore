@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Persistent backend data and local credentials
+data/
+.env
+.env.*
+!.env.example

@@ -39,8 +39,10 @@ export function AboutModal({
             <div>
               <p className="text-sm font-medium">Your words stay with you</p>
               <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-                The app host never receives your note. Anyone with its link can read it unless you
-                add password protection. Recent notes and writing preferences stay on this device.
+                Snapshot content stays in its link and supports password protection. Live notes are
+                stored unlocked by the app host and expire unless the owner extends them. Recent
+                notes and writing preferences stay on this device. AI sends your chosen text only
+                when you generate a proposal.
               </p>
             </div>
           </div>

@@ -10,6 +10,7 @@ import { createExtensions } from '@/editor/extensions'
 import { markdownFormattingLosses } from '@/editor/markdown-mode'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useDocumentTitle } from '@/hooks/use-document-title'
+import { useLiveStatus } from '@/hooks/use-live-status'
 import { assessUrl } from '@/lib/budget'
 import { encodeNote, type NoteDoc } from '@/lib/codec'
 import { deriveKey, randomBytes, SALT_BYTES } from '@/lib/crypto'
@@ -21,18 +22,21 @@ import {
   readHistory,
   rememberNote,
 } from '@/lib/history'
+import { type LiveSession, rememberLive, savedLiveNotes } from '@/lib/live'
 import type { Lock as LockState } from '@/lib/lock'
 import { isBlank } from '@/lib/note'
 import { readSidebarPreference, storeSidebarPreference } from '@/lib/sidebar-preference'
 import { navigateToNote, noteUrl, writeUrl } from '@/lib/url'
 import { readWritingPreferences, storeWritingPreferences } from '@/lib/writing-preferences'
 import { AboutModal } from './AboutModal'
+import { AIPanel } from './AIPanel'
 import { EditorSurface } from './EditorSurface'
 import { HistoryDrawer } from './HistoryDrawer'
 import { LockModal } from './LockModal'
 import { ShareModal } from './ShareModal'
 import { ShortcutsModal } from './ShortcutsModal'
 import { StatusBar } from './StatusBar'
+import { StorageModal } from './StorageModal'
 import { TopBar } from './TopBar'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
@@ -41,6 +45,7 @@ import { WritingPreferencesModal } from './WritingPreferencesModal'
 interface Props {
   initialDoc: NoteDoc
   initialLock: LockState | null
+  live?: LiveSession
 }
 
 /** Cheap identity for "has anything changed since the last save?". */
@@ -63,7 +68,11 @@ const HOTKEY_OPTIONS = {
   useKey: true,
 } as const
 
-export function NoteWorkspace({ initialDoc, initialLock }: Props) {
+export function NoteWorkspace({ initialDoc, initialLock, live }: Props) {
+  const { status: liveStatus, blocked, people } = useLiveStatus(live)
+  const canEdit = !live || (live.role !== 'viewer' && !blocked)
+  const [aiOpen, setAiOpen] = useState(false)
+  const [storageOpen, setStorageOpen] = useState(false)
   const [title, setTitle] = useState(initialDoc.title)
   const [content, setContent] = useState<JSONContent>(initialDoc.content)
   const [lock, setLock] = useState<LockState | null>(initialLock)
@@ -91,8 +100,9 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
   const editor = useEditor({
-    extensions: createExtensions({ editable: true }),
-    content: initialDoc.content,
+    extensions: createExtensions({ editable: canEdit, live }),
+    content: live ? undefined : initialDoc.content,
+    editable: canEdit,
     immediatelyRender: false,
     autofocus: isBlank(initialDoc) ? 'start' : false,
     editorProps: {
@@ -115,6 +125,30 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
       })
     },
   })
+
+  useEffect(() => {
+    editor?.setEditable(canEdit)
+  }, [editor, canEdit])
+  useEffect(() => {
+    if (!live) return
+    const meta = live.doc.getMap('meta')
+    const update = () => {
+      const next = String(meta.get('title') || '')
+      setTitle(next)
+      const saved = savedLiveNotes().find(
+        (note) => note.id === live.id && note.token === live.token,
+      )
+      if (saved && saved.title !== next) rememberLive({ ...saved, title: next })
+    }
+    meta.observe(update)
+    update()
+    return () => meta.unobserve(update)
+  }, [live])
+  const changeTitle = (value: string) => {
+    if (!canEdit) return
+    setTitle(value)
+    live?.doc.getMap('meta').set('title', value)
+  }
 
   useEffect(() => {
     storeWritingPreferences(preferences)
@@ -148,6 +182,7 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
     setMarkdown(editor.getMarkdown())
   }
   const changeMarkdown = (source: string) => {
+    if (live || !canEdit) return
     if (!editor) return
     try {
       editor.commands.setContent(source, { contentType: 'markdown', emitUpdate: true })
@@ -162,7 +197,7 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
 
   const save = useCallback(
     async (options: { push?: boolean; lockOverride?: LockState | null } = {}) => {
-      if (!editor) return null
+      if (!editor || live) return null
 
       const activeLock = 'lockOverride' in options ? options.lockOverride : lock
       const doc: NoteDoc = { id: initialDoc.id, title, content: editor.getJSON() }
@@ -192,7 +227,7 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
 
       return next
     },
-    [editor, title, lock, initialDoc.id],
+    [editor, title, lock, initialDoc.id, live],
   )
 
   const currentSignature = useMemo(() => signature(title, content), [title, content])
@@ -205,18 +240,22 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
    * rewrites its own URL the way the previous build did.
    */
   useEffect(() => {
-    if (!dirty) return
+    if (live || !dirty) return
     if (debouncedSignature !== currentSignature) return
     void save()
-  }, [debouncedSignature, currentSignature, dirty, save])
+  }, [debouncedSignature, currentSignature, dirty, save, live])
 
   const saveExplicitly = useCallback(async () => {
+    if (live) {
+      toast.info(liveStatus)
+      return
+    }
     const next = await save({ push: true })
     if (!next) return
     toast.success('Saved to the link', {
       description: 'This URL now holds the whole note. Copy it to keep or share.',
     })
-  }, [save])
+  }, [save, live, liveStatus])
 
   const goToNote = useCallback(
     async (nextPayload: string) => {
@@ -334,6 +373,7 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
   }
   const sidebar = (
     <WorkspaceSidebar
+      live={Boolean(live)}
       editor={editor}
       title={title}
       markdownMode={markdown !== null}
@@ -383,16 +423,22 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
         {!focusMode && (
           <TopBar
             title={title}
+            live={Boolean(live)}
+            people={people}
+            onStorage={() => setStorageOpen(true)}
+            onAI={() => setAiOpen(true)}
             encrypted={Boolean(lock)}
             onAbout={() => setAboutOpen(true)}
             sidebarExpanded={sidebarVisible}
             onSave={() => void saveExplicitly()}
-            onShare={() => setShareOpen(true)}
+            onShare={() => (live ? setStorageOpen(true) : setShareOpen(true))}
             onHistory={() => setHistoryOpen(true)}
-            onLock={() => setLockOpen(true)}
+            onLock={() => (live ? setStorageOpen(true) : setLockOpen(true))}
             onExportMarkdown={exportMarkdown}
             onExportHtml={exportHtml}
-            onImport={() => void importFile()}
+            onImport={() => {
+              if (canEdit) void importFile()
+            }}
             onShortcuts={() => setShortcutsOpen(true)}
             onFocusMode={() => setFocusMode(true)}
             onSidebarToggle={() => {
@@ -421,7 +467,9 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
             <EditorSurface
               editor={editor}
               title={title}
-              onTitleChange={setTitle}
+              onTitleChange={changeTitle}
+              canEdit={canEdit}
+              sourceReadOnly={Boolean(live)}
               markdown={markdown}
               onMarkdownChange={changeMarkdown}
               markdownLosses={markdownLosses}
@@ -446,14 +494,28 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
           </Tooltip>
         ) : (
           <div className="qj-no-print">
-            <StatusBar
-              dirty={dirty}
-              budget={budget}
-              savedAt={savedAt}
-              words={counts.words}
-              characters={counts.characters}
-              encrypted={Boolean(lock)}
-            />
+            {live ? (
+              <div
+                className="flex flex-wrap items-center justify-between gap-2 border-t px-5 py-3 text-xs text-muted-foreground"
+                role="status"
+              >
+                <span>
+                  {liveStatus} · {live.role}
+                </span>
+                <span>
+                  {counts.words} words · {people.length} online
+                </span>
+              </div>
+            ) : (
+              <StatusBar
+                dirty={dirty}
+                budget={budget}
+                savedAt={savedAt}
+                words={counts.words}
+                characters={counts.characters}
+                encrypted={Boolean(lock)}
+              />
+            )}
           </div>
         )}
       </div>
@@ -478,6 +540,16 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
           {sidebar}
         </SheetContent>
       </Sheet>
+      <AIPanel open={aiOpen} onOpenChange={setAiOpen} editor={editor} canEdit={canEdit} />
+      <StorageModal
+        open={storageOpen}
+        onOpenChange={setStorageOpen}
+        live={live}
+        editor={editor}
+        title={title}
+        id={initialDoc.id}
+        encrypted={Boolean(lock)}
+      />
       <AboutModal open={aboutOpen} onOpenChange={setAboutOpen} />
       <WritingPreferencesModal
         open={preferencesOpen}

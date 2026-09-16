@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { LiveNoteLoader } from './components/LiveNoteLoader'
 import { LoadFailure } from './components/LoadFailure'
 import { LockScreen } from './components/LockScreen'
 import { NoteWorkspace } from './components/NoteWorkspace'
@@ -11,6 +12,7 @@ import {
   type NoteDoc,
   UnsupportedVersionError,
 } from './lib/codec'
+import { liveLocation } from './lib/live'
 import type { Lock } from './lib/lock'
 import { readLocation, type ViewMode } from './lib/url'
 
@@ -51,6 +53,7 @@ export default function App() {
   const [generation, setGeneration] = useState(0)
 
   const reload = useCallback(() => {
+    if (liveLocation()) return
     const location = readLocation()
     setMode(location.mode)
     setState({ kind: 'loading' })
@@ -77,6 +80,10 @@ export default function App() {
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [reload])
+
+  const live = liveLocation()
+  if (live)
+    return <LiveNoteLoader key={`${live.id}:${generation}`} id={live.id} token={live.token} />
 
   if (state.kind === 'loading') {
     return (

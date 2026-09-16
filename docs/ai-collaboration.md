@@ -1,6 +1,6 @@
 # QuickJot: persistent notes, collaboration and BYOK exploration
 
-Status: design exploration, not a deployed service. Existing self-contained notes remain the default. Prices checked against official documentation on 2026-09-16.
+Status: original exploration retained for rationale. The implementation uses Node/Express, SQLite and Hocuspocus rather than Cloudflare Durable Objects. See [deployment.md](deployment.md) for the actual runtime and supported behavior. Existing self-contained notes remain the default. Prices checked against official documentation on 2026-09-16.
 
 ## Recommended product model
 

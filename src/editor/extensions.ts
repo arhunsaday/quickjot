@@ -1,3 +1,5 @@
+import Collaboration from '@tiptap/extension-collaboration'
+import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import { Details, DetailsContent, DetailsSummary } from '@tiptap/extension-details'
 import Highlight from '@tiptap/extension-highlight'
 import { TaskList } from '@tiptap/extension-list'
@@ -22,6 +24,7 @@ import typescript from 'highlight.js/lib/languages/typescript'
 import xml from 'highlight.js/lib/languages/xml'
 import yaml from 'highlight.js/lib/languages/yaml'
 import { createLowlight } from 'lowlight'
+import type { LiveSession } from '@/lib/live'
 import { EnhancedCodeBlock } from './code-block'
 import { SlashCommand } from './slash-menu'
 import { EnhancedTaskItem } from './task-item'
@@ -61,11 +64,12 @@ export const PLACEHOLDER = 'Start writing. Type / for headings, lists and code b
  * sub/superscript and all four alignments without ever registering the
  * extensions behind them, so none of those buttons could do anything.
  */
-export function createExtensions({ editable }: { editable: boolean }) {
+export function createExtensions({ editable, live }: { editable: boolean; live?: LiveSession }) {
   return [
     StarterKit.configure({
       // Replaced below by the syntax-highlighting variant.
       codeBlock: false,
+      undoRedo: live ? false : undefined,
       link: {
         openOnClick: !editable,
         autolink: true,
@@ -101,6 +105,15 @@ export function createExtensions({ editable }: { editable: boolean }) {
         }
       },
     }),
+    ...(live
+      ? [
+          Collaboration.configure({ document: live.doc }),
+          CollaborationCaret.configure({
+            provider: live.provider,
+            user: live.provider.awareness?.getLocalState()?.user,
+          }),
+        ]
+      : []),
     DetailsSummary,
     DetailsContent,
     Highlight,

@@ -1,5 +1,6 @@
 import {
   Clock3,
+  Cloud,
   Download,
   EllipsisVertical,
   FileCode2,
@@ -14,6 +15,7 @@ import {
   Save,
   Share2,
   SlidersHorizontal,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,6 +29,10 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface Props {
+  people: { id: number; name: string; color: string }[]
+  live: boolean
+  onStorage: () => void
+  onAI: () => void
   title: string
   sidebarExpanded: boolean
   onAbout: () => void
@@ -47,6 +53,10 @@ interface Props {
 }
 
 export function TopBar({
+  people,
+  live,
+  onStorage,
+  onAI,
   title,
   sidebarExpanded,
   onAbout,
@@ -85,9 +95,51 @@ export function TopBar({
           <TooltipContent>Editor sidebar</TooltipContent>
         </Tooltip>
         <div className="bg-border hidden h-5 w-px sm:block" />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="rounded-lg text-xs shrink-0"
+          onClick={onStorage}
+        >
+          <Cloud className="size-3.5" />
+          <span className="hidden md:inline">{live ? 'Live note' : 'Link snapshot'}</span>
+        </Button>
         <span className="truncate text-sm font-medium">{title.trim() || 'Untitled note'}</span>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
+        {live && people.length > 0 && (
+          <button
+            type="button"
+            onClick={onStorage}
+            aria-label="Collaborators and your name"
+            className="hidden sm:flex items-center -space-x-1.5 mr-1"
+          >
+            {people.slice(0, 3).map((person) => (
+              <span
+                key={person.id}
+                title={person.name}
+                style={{ backgroundColor: person.color }}
+                className="flex size-7 items-center justify-center rounded-full border-2 border-background text-[10px] font-medium text-white"
+              >
+                {person.name.charAt(0).toUpperCase()}
+              </span>
+            ))}
+            {people.length > 3 && (
+              <span className="rounded-full bg-muted text-[10px] p-1">+{people.length - 3}</span>
+            )}
+          </button>
+        )}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label="Write with AI"
+          className="rounded-lg"
+          onClick={onAI}
+        >
+          <Sparkles className="size-4" />
+          <span className="hidden sm:inline">AI</span>
+        </Button>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -116,7 +168,11 @@ export function TopBar({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onLock}>
               {encrypted ? <Lock /> : <LockOpen />}
-              {encrypted ? 'Password protection' : 'Protect with password'}
+              {live
+                ? 'Sharing & storage'
+                : encrypted
+                  ? 'Password protection'
+                  : 'Protect with password'}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onHistory}>
               <Clock3 />

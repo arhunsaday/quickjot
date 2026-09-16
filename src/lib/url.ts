@@ -19,6 +19,7 @@ export function readLocation(): LocationState {
 
 export function noteUrl(payload: string, mode: ViewMode = 'edit'): string {
   const url = new URL(window.location.href)
+  url.pathname = '/'
   url.search = mode === 'read' ? `?${READ_PARAM}=${READ_VALUE}` : ''
   url.hash = payload ? `#${payload}` : ''
   return url.toString()

@@ -1,7 +1,7 @@
 import type { Editor } from '@tiptap/react'
 import { useEditorState } from '@tiptap/react'
 import { cn } from 'cn'
-import { FileCode2, Hash, Keyboard, Plus, ShieldCheck, Type } from 'lucide-react'
+import { Hash, Keyboard, Plus, ShieldCheck } from 'lucide-react'
 import type { WritingPreferences } from '@/lib/writing-preferences'
 import { ThemeToggle } from './ThemeToggle'
 import { Button } from './ui/button'
@@ -56,13 +56,13 @@ function Outline({ editor, onNavigate }: { editor: Editor; onNavigate: (pos: num
 }
 
 export function WorkspaceSidebar({
-  markdownMode,
-  onModeChange,
+  live = false,
   editor,
   onNewNote,
   onShortcuts,
   onNavigate,
 }: {
+  live?: boolean
   editor: Editor | null
   title: string
   markdownMode: boolean
@@ -117,7 +117,7 @@ export function WorkspaceSidebar({
             <ChevronRight className="size-3.5 opacity-50" />
           </button>
         </nav> */}
-        <section aria-label="Editor mode">
+        {/* <section aria-label="Editor mode">
           <p className="qj-sidebar-label">Editor</p>
           <div className="bg-muted/70 grid grid-cols-2 gap-1 rounded-xl border p-1">
             <button
@@ -149,7 +149,7 @@ export function WorkspaceSidebar({
               Markdown
             </button>
           </div>
-        </section>
+        </section> */}
         <section>
           {/* <p className="qj-sidebar-label">On this page</p> */}
           {editor && <Outline editor={editor} onNavigate={onNavigate} />}
@@ -210,8 +210,10 @@ export function WorkspaceSidebar({
             <ShieldCheck className="size-4" />
           </div>
           <div className="flex-1">
-            <p className="text-xs font-medium">Local & private</p>
-            <p className="text-muted-foreground text-[10px]">Your note lives in its link</p>
+            <p className="text-xs font-medium">{live ? 'Live & shared' : 'Local & private'}</p>
+            <p className="text-muted-foreground text-[10px]">
+              {live ? 'Saved by the app host' : 'Your note lives in its link'}
+            </p>
           </div>
         </div>
         <div className="flex items-center justify-between border-t pt-2">

@@ -10,6 +10,8 @@ interface Props {
   editor: Editor | null
   title: string
   onTitleChange: (value: string) => void
+  canEdit?: boolean
+  sourceReadOnly?: boolean
   markdown?: string | null
   onMarkdownChange?: (value: string) => void
   markdownLosses?: string[]
@@ -27,6 +29,8 @@ export function EditorSurface({
   editor,
   title,
   onTitleChange,
+  canEdit = true,
+  sourceReadOnly = false,
   markdown = null,
   onMarkdownChange,
   markdownLosses = [],
@@ -52,6 +56,7 @@ export function EditorSurface({
       <textarea
         ref={titleRef}
         value={title}
+        readOnly={!canEdit}
         onChange={(event) => onTitleChange(event.currentTarget.value)}
         onKeyDown={(event) => {
           // Enter belongs to the body, not the title.
@@ -75,7 +80,7 @@ export function EditorSurface({
         className="placeholder:text-muted-foreground/40 w-full resize-none overflow-hidden bg-transparent pt-4 text-3xl font-bold tracking-tight outline-none sm:text-4xl"
       />
 
-      {editor && markdown === null && (
+      {editor && canEdit && markdown === null && (
         <BubbleMenu
           editor={editor}
           // flip/shift keep the menu on screen when the selection sits at the
@@ -94,7 +99,9 @@ export function EditorSurface({
       {markdown !== null ? (
         <div className="mt-4">
           <p className="text-muted-foreground mb-3 text-xs" role="status">
-            Markdown source · changes save automatically.
+            {sourceReadOnly
+              ? 'Markdown preview · make a snapshot to edit source safely.'
+              : 'Markdown source · changes save automatically.'}
             {markdownLosses.length > 0 &&
               ` Editing this source removes ${markdownLosses.join(', ')}. Switch back without editing to keep them.`}
           </p>
@@ -102,6 +109,7 @@ export function EditorSurface({
             ref={sourceRef}
             aria-label="Markdown source"
             value={markdown}
+            readOnly={!canEdit || sourceReadOnly}
             onChange={(event) => onMarkdownChange?.(event.target.value)}
             spellCheck={false}
             className="qj-markdown-source min-h-[65vh] w-full resize-y bg-transparent font-mono outline-none"
@@ -109,7 +117,7 @@ export function EditorSurface({
         </div>
       ) : (
         <>
-          {editor && <BlockControls editor={editor} />}
+          {editor && canEdit && <BlockControls editor={editor} />}
           <EditorContent editor={editor} className="qj-document mt-6" />
         </>
       )}

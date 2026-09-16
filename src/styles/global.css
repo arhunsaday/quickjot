@@ -617,3 +617,33 @@ li[data-checked="true"] > .qj-task-row > .qj-task-content > [data-node-view-cont
     display: none;
   }
 }
+.qj-settings-select {
+  width: 100%;
+  height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0 0.65rem;
+  background: var(--background);
+  font-size: 0.875rem;
+}
+.collaboration-carets__caret {
+  border-left: 2px solid;
+  border-right: 2px solid;
+  margin-left: -1px;
+  margin-right: -1px;
+  position: relative;
+  pointer-events: none;
+  word-break: normal;
+}
+.collaboration-carets__label {
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  font-size: 10px;
+  font-weight: 500;
+  color: white;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px 4px 4px 0;
+  white-space: nowrap;
+  user-select: none;
+}
