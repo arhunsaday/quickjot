@@ -64,3 +64,47 @@ describe('markdown parsing', () => {
     expect(() => manager.parse('just a bare sentence')).not.toThrow()
   })
 })
+
+describe('task list Markdown', () => {
+  it('preserves checked states and nested tasks through a round trip', () => {
+    const source = '- [ ] Parent\n  - [x] Child\n- [x] Complete'
+    const parsed = manager.parse(source)
+    const list = parsed.content?.[0]
+    expect(list?.type).toBe('taskList')
+    expect(list?.content?.[0]?.attrs?.checked).toBe(false)
+    expect(list?.content?.[1]?.attrs?.checked).toBe(true)
+    const nested = list?.content?.[0]?.content?.find((node) => node.type === 'taskList')
+    expect(nested?.content?.[0]?.attrs?.checked).toBe(true)
+    expect(manager.parse(manager.serialize(parsed))).toEqual(parsed)
+  })
+
+  it('retains code text and language alongside task lists', () => {
+    const parsed = manager.parse('- [x] Done\n\n```python\nprint("hello")\nprint(2)\n```')
+    expect(manager.parse(manager.serialize(parsed))).toEqual(parsed)
+  })
+})
+
+describe('collapsible sections', () => {
+  it('keeps the summary and nested content through Markdown', () => {
+    const doc = {
+      type: 'doc',
+      content: [
+        {
+          type: 'details',
+          attrs: { open: true },
+          content: [
+            { type: 'detailsSummary', content: [{ type: 'text', text: 'Section title' }] },
+            {
+              type: 'detailsContent',
+              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hidden content' }] }],
+            },
+          ],
+        },
+      ],
+    }
+    const restored = manager.parse(manager.serialize(doc))
+    expect(restored.content?.[0]?.type).toBe('details')
+    expect(JSON.stringify(restored)).toContain('Section title')
+    expect(JSON.stringify(restored)).toContain('Hidden content')
+  })
+})

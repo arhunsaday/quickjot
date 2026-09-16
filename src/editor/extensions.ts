@@ -1,9 +1,10 @@
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import { Details, DetailsContent, DetailsSummary } from '@tiptap/extension-details'
 import Highlight from '@tiptap/extension-highlight'
+import { TaskList } from '@tiptap/extension-list'
 import Subscript from '@tiptap/extension-subscript'
 import Superscript from '@tiptap/extension-superscript'
 import TextAlign from '@tiptap/extension-text-align'
-import { CharacterCount, Placeholder } from '@tiptap/extensions'
+import { CharacterCount, Focus, Placeholder } from '@tiptap/extensions'
 import { Markdown } from '@tiptap/markdown'
 import StarterKit from '@tiptap/starter-kit'
 import bash from 'highlight.js/lib/languages/bash'
@@ -21,7 +22,9 @@ import typescript from 'highlight.js/lib/languages/typescript'
 import xml from 'highlight.js/lib/languages/xml'
 import yaml from 'highlight.js/lib/languages/yaml'
 import { createLowlight } from 'lowlight'
+import { EnhancedCodeBlock } from './code-block'
 import { SlashCommand } from './slash-menu'
+import { EnhancedTaskItem } from './task-item'
 
 /**
  * A curated grammar set rather than lowlight's `common`.
@@ -70,7 +73,36 @@ export function createExtensions({ editable }: { editable: boolean }) {
         HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' },
       },
     }),
-    CodeBlockLowlight.configure({ lowlight }),
+    EnhancedCodeBlock.configure({ lowlight, enableTabIndentation: true, tabSize: 2 }),
+    TaskList,
+    EnhancedTaskItem.configure({ nested: true }),
+    Details.configure({
+      persist: true,
+      HTMLAttributes: { class: 'qj-details' },
+      renderToggleButton: ({ element, isOpen, node }) => {
+        element.setAttribute(
+          'aria-label',
+          `${isOpen ? 'Collapse' : 'Expand'} section: ${node.firstChild?.textContent || 'Untitled section'}`,
+        )
+        element.setAttribute('aria-expanded', String(isOpen))
+        if (!element.firstChild) {
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+          svg.setAttribute('viewBox', '0 0 24 24')
+          svg.setAttribute('width', '16')
+          svg.setAttribute('height', '16')
+          svg.setAttribute('fill', 'none')
+          svg.setAttribute('stroke', 'currentColor')
+          svg.setAttribute('stroke-width', '2')
+          svg.setAttribute('aria-hidden', 'true')
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+          path.setAttribute('d', 'm9 5 7 7-7 7')
+          svg.append(path)
+          element.append(svg)
+        }
+      },
+    }),
+    DetailsSummary,
+    DetailsContent,
     Highlight,
     Subscript,
     Superscript,
@@ -78,6 +110,12 @@ export function createExtensions({ editable }: { editable: boolean }) {
     CharacterCount,
     // Markdown gives us paste-as-markdown plus getMarkdown() for export.
     Markdown,
-    ...(editable ? [Placeholder.configure({ placeholder: PLACEHOLDER }), SlashCommand] : []),
+    ...(editable
+      ? [
+          Placeholder.configure({ placeholder: PLACEHOLDER }),
+          Focus.configure({ mode: 'shallowest', className: 'qj-active-block' }),
+          SlashCommand,
+        ]
+      : []),
   ]
 }

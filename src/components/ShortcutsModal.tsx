@@ -30,6 +30,8 @@ const GROUPS: Array<{ heading: string; rows: Array<[string, string]> }> = [
     heading: 'Writing',
     rows: [
       ['/', 'Insert a heading, list, quote, code block or divider'],
+      [`${MOD} + Shift + 9`, 'Task list'],
+      ['Tab / Shift + Tab', 'Indent / outdent a task item'],
       [`${MOD} + B`, 'Bold'],
       [`${MOD} + I`, 'Italic'],
       [`${MOD} + U`, 'Underline'],
@@ -45,6 +47,7 @@ const GROUPS: Array<{ heading: string; rows: Array<[string, string]> }> = [
       ['# ', 'Heading (## and ### too)'],
       ['- ', 'Bulleted list'],
       ['1. ', 'Numbered list'],
+      ['[ ] / [x] ', 'Unchecked / checked task'],
       ['> ', 'Quote'],
       ['``` ', 'Code block'],
       ['---', 'Divider'],

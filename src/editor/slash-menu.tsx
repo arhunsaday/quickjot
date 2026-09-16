@@ -3,12 +3,14 @@ import { ReactRenderer } from '@tiptap/react'
 import Suggestion, { type SuggestionOptions, type SuggestionProps } from '@tiptap/suggestion'
 import { cn } from 'cn'
 import {
+  ChevronRight,
   Code,
   Heading1,
   Heading2,
   Heading3,
   List,
   ListOrdered,
+  ListTodo,
   Minus,
   Pilcrow,
   TextQuote,
@@ -70,6 +72,13 @@ const ITEMS: SlashItem[] = [
     run: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
   },
   {
+    title: 'Task list',
+    hint: 'Nested checkboxes',
+    keywords: ['todo', 'task', 'check', 'checklist'],
+    icon: ListTodo,
+    run: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleTaskList().run(),
+  },
+  {
     title: 'Quote',
     hint: 'Blockquote',
     keywords: ['blockquote', 'cite'],
@@ -82,6 +91,27 @@ const ITEMS: SlashItem[] = [
     keywords: ['code', 'pre', 'snippet'],
     icon: Code,
     run: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
+  },
+  {
+    title: 'Collapsible section',
+    hint: 'A title with expandable content',
+    keywords: ['toggle', 'details', 'collapse', 'accordion', 'section'],
+    icon: ChevronRight,
+    run: ({ editor, range }) =>
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({
+          type: 'details',
+          attrs: { open: true },
+          content: [
+            { type: 'detailsSummary', content: [{ type: 'text', text: 'Section title' }] },
+            { type: 'detailsContent', content: [{ type: 'paragraph' }] },
+          ],
+        })
+        .setTextSelection({ from: range.from + 2, to: range.from + 15 })
+        .run(),
   },
   {
     title: 'Divider',

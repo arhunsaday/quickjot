@@ -14,6 +14,18 @@ even the host serving the app never sees a note.
   highlighting, links, highlight, alignment, sub/superscript.
 - **`/` command menu** for inserting blocks, and a formatting bar that appears
   when you select text. No permanent toolbar in the way of the writing.
+- **Task lists** with shadcn checkboxes, nested items, slash commands and Markdown support.
+- **Collapsible sections** with editable summaries and persistent open state.
+- **Block drag and drop** with a visible insertion guide and automatic scrolling;
+  a separate block menu handles duplication and deletion.
+- **Code block controls** — language selection, copy, line numbers, wrapping,
+  and two-space Tab indentation. Line numbers and wrapping are alternate views.
+- **Document outline** in the animated sidebar; click a heading to jump. The sidebar
+  starts closed and remembers its open/closed state on the device.
+- **Markdown source mode** with automatic saving. Switching views alone preserves
+  rich formatting; editing source warns about formatting Markdown cannot retain.
+- **Writing preferences** — page width, font, text size, line spacing, typewriter
+  scrolling and dimming inactive blocks, saved on the device.
 - **Markdown** in both directions: paste it in, export it out.
 - **Password-protected notes** — AES-GCM encryption with a key derived from a
   passphrase (PBKDF2, 600k iterations). The passphrase never touches the URL;

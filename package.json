@@ -17,8 +17,14 @@
   "dependencies": {
     "@tiptap/core": "^3.31.3",
     "@tiptap/extension-code-block-lowlight": "^3.31.3",
+    "@tiptap/extension-collaboration": "^3.31.3",
+    "@tiptap/extension-details": "^3.31.3",
+    "@tiptap/extension-drag-handle": "^3.31.3",
+    "@tiptap/extension-drag-handle-react": "^3.31.3",
     "@tiptap/extension-highlight": "^3.31.3",
     "@tiptap/extension-link": "^3.31.3",
+    "@tiptap/extension-list": "^3.31.3",
+    "@tiptap/extension-node-range": "^3.31.3",
     "@tiptap/extension-subscript": "^3.31.3",
     "@tiptap/extension-superscript": "^3.31.3",
     "@tiptap/extension-text-align": "^3.31.3",
@@ -28,6 +34,7 @@
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
     "@tiptap/suggestion": "^3.31.3",
+    "@tiptap/y-tiptap": "^3.0.9",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.6",
     "highlight.js": "^11.11.2",
@@ -39,7 +46,9 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hotkeys-hook": "^5.3.3",
-    "sonner": "^2.0.8"
+    "sonner": "^2.0.8",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.32"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",

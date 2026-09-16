@@ -1,12 +1,13 @@
 import type { JSONContent } from '@tiptap/core'
 import { useEditor } from '@tiptap/react'
 import { Lock, LockOpen, Minimize2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { createExtensions } from '@/editor/extensions'
+import { markdownFormattingLosses } from '@/editor/markdown-mode'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { assessUrl } from '@/lib/budget'
@@ -22,7 +23,10 @@ import {
 } from '@/lib/history'
 import type { Lock as LockState } from '@/lib/lock'
 import { isBlank } from '@/lib/note'
+import { readSidebarPreference, storeSidebarPreference } from '@/lib/sidebar-preference'
 import { navigateToNote, noteUrl, writeUrl } from '@/lib/url'
+import { readWritingPreferences, storeWritingPreferences } from '@/lib/writing-preferences'
+import { AboutModal } from './AboutModal'
 import { EditorSurface } from './EditorSurface'
 import { HistoryDrawer } from './HistoryDrawer'
 import { LockModal } from './LockModal'
@@ -30,6 +34,9 @@ import { ShareModal } from './ShareModal'
 import { ShortcutsModal } from './ShortcutsModal'
 import { StatusBar } from './StatusBar'
 import { TopBar } from './TopBar'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet'
+import { WorkspaceSidebar } from './WorkspaceSidebar'
+import { WritingPreferencesModal } from './WritingPreferencesModal'
 
 interface Props {
   initialDoc: NoteDoc
@@ -65,10 +72,19 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
   const [entries, setEntries] = useState<HistoryEntry[]>(readHistory)
   const [counts, setCounts] = useState({ words: 0, characters: 0 })
   const [focusMode, setFocusMode] = useState(false)
+  const headingTarget = useRef<number | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarVisible, setSidebarVisible] = useState(readSidebarPreference)
+  useEffect(() => storeSidebarPreference(sidebarVisible), [sidebarVisible])
+  const [preferencesOpen, setPreferencesOpen] = useState(false)
+  const [preferences, setPreferences] = useState(readWritingPreferences)
+  const [markdown, setMarkdown] = useState<string | null>(null)
+  const [markdownLosses, setMarkdownLosses] = useState<string[]>([])
   const [savedSignature, setSavedSignature] = useState(() =>
     signature(initialDoc.title, initialDoc.content),
   )
 
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [lockOpen, setLockOpen] = useState(false)
@@ -99,6 +115,48 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
       })
     },
   })
+
+  useEffect(() => {
+    storeWritingPreferences(preferences)
+  }, [preferences])
+
+  useEffect(() => {
+    if (!editor || !preferences.typewriter || markdown !== null) return
+    const centerCaret = () => {
+      if (!editor.isFocused) return
+      const main = editor.view.dom.closest('main')
+      if (!main) return
+      const caret = editor.view.coordsAtPos(editor.state.selection.head)
+      const bounds = main.getBoundingClientRect()
+      main.scrollBy({ top: caret.top - bounds.top - bounds.height / 2, behavior: 'instant' })
+    }
+    editor.on('selectionUpdate', centerCaret)
+    editor.on('update', centerCaret)
+    return () => {
+      editor.off('selectionUpdate', centerCaret)
+      editor.off('update', centerCaret)
+    }
+  }, [editor, preferences.typewriter, markdown])
+
+  const toggleMarkdown = () => {
+    if (!editor) return
+    if (markdown !== null) {
+      setMarkdown(null)
+      return
+    }
+    setMarkdownLosses(markdownFormattingLosses(editor.getJSON()))
+    setMarkdown(editor.getMarkdown())
+  }
+  const changeMarkdown = (source: string) => {
+    if (!editor) return
+    try {
+      editor.commands.setContent(source, { contentType: 'markdown', emitUpdate: true })
+      setMarkdown(source)
+      setMarkdownLosses([])
+    } catch {
+      toast.error('Could not parse Markdown. Your previous note is preserved.')
+    }
+  }
 
   useDocumentTitle(title.trim() ? `${title.trim()} · QuickJot` : 'QuickJot')
 
@@ -207,7 +265,7 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
       '<html lang="en"><head><meta charset="utf-8">',
       `<title>${escapeHtml(name)}</title>`,
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
-      '<style>body{max-width:42rem;margin:3rem auto;padding:0 1.25rem;font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#18181b}pre{background:#f4f4f5;padding:1rem;border-radius:8px;overflow-x:auto}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}blockquote{margin-inline:0;padding-inline-start:1rem;border-inline-start:3px solid #d4d4d8;color:#52525b}</style>',
+      '<style>body{max-width:42rem;margin:3rem auto;padding:0 1.25rem;font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#18181b}pre{background:#f4f4f5;padding:1rem;border-radius:8px;overflow-x:auto}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}ul[data-type="taskList"]{list-style:none;padding-left:0}ul[data-type="taskList"] li{display:flex;align-items:flex-start;gap:.65rem}ul[data-type="taskList"] li>div{flex:1}ul[data-type="taskList"] li p{margin:0}li[data-checked="true"]>div>p{text-decoration:line-through}blockquote{margin-inline:0;padding-inline-start:1rem;border-inline-start:3px solid #d4d4d8;color:#52525b}</style>',
       '</head><body>',
       title.trim() ? `<h1>${escapeHtml(title.trim())}</h1>` : '',
       editor.getHTML(),
@@ -223,6 +281,7 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
     )
     if (!file || !editor) return
 
+    setMarkdown(null)
     const asHtml = /\.html?$/i.test(file.name)
     editor.commands.setContent(file.text, {
       contentType: asHtml ? 'html' : 'markdown',
@@ -254,59 +313,178 @@ export function NoteWorkspace({ initialDoc, initialLock }: Props) {
     [focusMode],
   )
 
+  const navigateToHeading = (pos: number) => {
+    setMarkdown(null)
+    if (sidebarOpen) {
+      headingTarget.current = pos
+      setSidebarOpen(false)
+      return
+    }
+    requestAnimationFrame(() => {
+      if (!editor) return
+      editor
+        .chain()
+        .focus()
+        .setTextSelection(pos + 1)
+        .run()
+      const element = editor.view.nodeDOM(pos)
+      if (element instanceof HTMLElement)
+        element.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+  }
+  const sidebar = (
+    <WorkspaceSidebar
+      editor={editor}
+      title={title}
+      markdownMode={markdown !== null}
+      onModeChange={(source) => {
+        setSidebarOpen(false)
+        if (source !== (markdown !== null)) toggleMarkdown()
+      }}
+      onHistory={() => {
+        setSidebarOpen(false)
+        setHistoryOpen(true)
+      }}
+      onNewNote={() => void goToNote('')}
+      onPreferences={() => {
+        setSidebarOpen(false)
+        setPreferencesOpen(true)
+      }}
+      onShortcuts={() => {
+        setSidebarOpen(false)
+        setShortcutsOpen(true)
+      }}
+      onNavigate={navigateToHeading}
+      preferences={preferences}
+      onPreferencesChange={setPreferences}
+    />
+  )
+
   const editUrl = noteUrl(payload, 'edit')
   const budget = assessUrl(editUrl.length)
 
   return (
-    <div className="flex h-dvh flex-col">
-      {!focusMode && (
-        <TopBar
-          encrypted={Boolean(lock)}
-          onSave={() => void saveExplicitly()}
-          onShare={() => setShareOpen(true)}
-          onHistory={() => setHistoryOpen(true)}
-          onLock={() => setLockOpen(true)}
-          onExportMarkdown={exportMarkdown}
-          onExportHtml={exportHtml}
-          onImport={() => void importFile()}
-          onShortcuts={() => setShortcutsOpen(true)}
-          onFocusMode={() => setFocusMode(true)}
-        />
-      )}
-
-      <main className="flex-1 overflow-y-auto [overscroll-behavior:contain]">
-        <div className="mx-auto max-w-[760px] pb-32">
-          <EditorSurface editor={editor} title={title} onTitleChange={setTitle} />
-        </div>
-      </main>
-
-      {focusMode ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Leave focus mode"
-              onClick={() => setFocusMode(false)}
-              className="qj-no-print fixed right-6 bottom-6 z-40 rounded-full opacity-40 transition-opacity hover:opacity-100 focus-visible:opacity-100"
-            >
-              <Minimize2 />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Leave focus mode (Esc)</TooltipContent>
-        </Tooltip>
-      ) : (
-        <div className="qj-no-print">
-          <StatusBar
-            budget={budget}
-            savedAt={savedAt}
-            dirty={dirty}
-            words={counts.words}
-            characters={counts.characters}
+    <div
+      className={`qj-workspace flex h-dvh bg-muted/50 p-2 sm:p-3 ${focusMode ? 'qj-workspace-focus' : ''}`}
+    >
+      {
+        <aside
+          aria-label="Editor sidebar"
+          id="editor-sidebar"
+          inert={!sidebarVisible || focusMode}
+          aria-hidden={!sidebarVisible || focusMode}
+          data-open={sidebarVisible && !focusMode}
+          className="qj-desktop-sidebar qj-no-print hidden shrink-0 overflow-hidden lg:block"
+        >
+          <div className="qj-sidebar-inner h-full w-[252px] pr-3">{sidebar}</div>
+        </aside>
+      }
+      <div className="qj-main-panel bg-background flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border shadow-xs">
+        {!focusMode && (
+          <TopBar
+            title={title}
             encrypted={Boolean(lock)}
+            onAbout={() => setAboutOpen(true)}
+            sidebarExpanded={sidebarVisible}
+            onSave={() => void saveExplicitly()}
+            onShare={() => setShareOpen(true)}
+            onHistory={() => setHistoryOpen(true)}
+            onLock={() => setLockOpen(true)}
+            onExportMarkdown={exportMarkdown}
+            onExportHtml={exportHtml}
+            onImport={() => void importFile()}
+            onShortcuts={() => setShortcutsOpen(true)}
+            onFocusMode={() => setFocusMode(true)}
+            onSidebarToggle={() => {
+              if (window.matchMedia('(min-width: 1024px)').matches)
+                setSidebarVisible((value) => !value)
+              else setSidebarOpen(true)
+            }}
+            onMarkdownMode={toggleMarkdown}
+            onWritingPreferences={() => setPreferencesOpen(true)}
+            markdownMode={markdown !== null}
           />
-        </div>
-      )}
+        )}
+
+        <main className="qj-editor-scroll min-h-0 flex-1 overflow-y-auto [overscroll-behavior:contain]">
+          <div
+            className={`qj-writing mx-auto pt-4 pb-[50vh] sm:pt-8 ${preferences.dimInactive ? 'qj-dim-inactive' : ''}`}
+            data-font={preferences.font}
+            style={
+              {
+                maxWidth: { narrow: 600, comfortable: 760, wide: 1040 }[preferences.width],
+                '--qj-font-size': `${preferences.fontSize}px`,
+                '--qj-line-height': preferences.lineHeight,
+              } as React.CSSProperties
+            }
+          >
+            <EditorSurface
+              editor={editor}
+              title={title}
+              onTitleChange={setTitle}
+              markdown={markdown}
+              onMarkdownChange={changeMarkdown}
+              markdownLosses={markdownLosses}
+            />
+          </div>
+        </main>
+
+        {focusMode ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Leave focus mode"
+                onClick={() => setFocusMode(false)}
+                className="qj-no-print fixed right-6 bottom-6 z-40 rounded-full opacity-40 transition-opacity hover:opacity-100 focus-visible:opacity-100"
+              >
+                <Minimize2 />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Leave focus mode (Esc)</TooltipContent>
+          </Tooltip>
+        ) : (
+          <div className="qj-no-print">
+            <StatusBar
+              dirty={dirty}
+              budget={budget}
+              savedAt={savedAt}
+              words={counts.words}
+              characters={counts.characters}
+              encrypted={Boolean(lock)}
+            />
+          </div>
+        )}
+      </div>
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetContent
+          side="left"
+          className="w-[290px] gap-0 rounded-r-2xl p-0"
+          onCloseAutoFocus={(event) => {
+            if (headingTarget.current === null) return
+            event.preventDefault()
+            const pos = headingTarget.current
+            headingTarget.current = null
+            navigateToHeading(pos)
+          }}
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Editor sidebar</SheetTitle>
+            <SheetDescription>
+              Editor modes, document outline, and writing preferences.
+            </SheetDescription>
+          </SheetHeader>
+          {sidebar}
+        </SheetContent>
+      </Sheet>
+      <AboutModal open={aboutOpen} onOpenChange={setAboutOpen} />
+      <WritingPreferencesModal
+        open={preferencesOpen}
+        onOpenChange={setPreferencesOpen}
+        value={preferences}
+        onChange={setPreferences}
+      />
 
       <ShareModal
         open={shareOpen}
