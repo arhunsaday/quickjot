@@ -1,36 +1,30 @@
-import type { Editor } from "@tiptap/react";
-import { useEditorState } from "@tiptap/react";
-import { cn } from "cn";
-import { Hash, Keyboard, Plus, ShieldCheck } from "lucide-react";
-import type { WritingPreferences } from "@/lib/writing-preferences";
-import { ThemeToggle } from "./ThemeToggle";
-import { Button } from "./ui/button";
+import type { Editor } from '@tiptap/react'
+import { useEditorState } from '@tiptap/react'
+import { cn } from 'cn'
+import { FileCode2, Hash, Keyboard, Plus, ShieldCheck, Type } from 'lucide-react'
+import type { WritingPreferences } from '@/lib/writing-preferences'
+import { ThemeToggle } from './ThemeToggle'
+import { Button } from './ui/button'
 
-function Outline({
-  editor,
-  onNavigate,
-}: {
-  editor: Editor;
-  onNavigate: (pos: number) => void;
-}) {
+function Outline({ editor, onNavigate }: { editor: Editor; onNavigate: (pos: number) => void }) {
   const items = useEditorState({
     editor,
     selector: ({ editor: instance }) => {
-      const headings: { pos: number; level: number; text: string }[] = [];
+      const headings: { pos: number; level: number; text: string }[] = []
       instance.state.doc.descendants((node, pos) => {
-        if (node.type.name === "heading")
+        if (node.type.name === 'heading')
           headings.push({
             pos,
             level: node.attrs.level,
             text: node.textContent,
-          });
-      });
+          })
+      })
       const current = headings
         .filter((item) => item.pos <= instance.state.selection.from)
-        .at(-1)?.pos;
-      return { headings, current };
+        .at(-1)?.pos
+      return { headings, current }
     },
-  });
+  })
   return (
     <nav aria-label="Document outline" className="space-y-0.5">
       {items.headings.length === 0 ? (
@@ -44,44 +38,42 @@ function Outline({
           <button
             key={heading.pos}
             type="button"
-            aria-current={
-              heading.pos === items.current ? "location" : undefined
-            }
+            aria-current={heading.pos === items.current ? 'location' : undefined}
             className={cn(
-              "qj-sidebar-item group w-full text-left",
-              heading.pos === items.current && "bg-accent text-foreground",
+              'qj-sidebar-item group w-full text-left',
+              heading.pos === items.current && 'bg-accent text-foreground',
             )}
             style={{ paddingLeft: 10 + (heading.level - 1) * 10 }}
             onClick={() => onNavigate(heading.pos)}
           >
             <Hash className="text-muted-foreground size-3.5 shrink-0" />
-            <span className="truncate">
-              {heading.text || "Untitled section"}
-            </span>
+            <span className="truncate">{heading.text || 'Untitled section'}</span>
           </button>
         ))
       )}
     </nav>
-  );
+  )
 }
 
 export function WorkspaceSidebar({
+  markdownMode,
+  onModeChange,
   editor,
   onNewNote,
   onShortcuts,
   onNavigate,
 }: {
-  editor: Editor | null;
-  title: string;
-  markdownMode: boolean;
-  onModeChange: (markdown: boolean) => void;
-  onHistory: () => void;
-  onNewNote: () => void;
-  onPreferences: () => void;
-  onShortcuts: () => void;
-  onNavigate: (pos: number) => void;
-  preferences: WritingPreferences;
-  onPreferencesChange: (value: WritingPreferences) => void;
+  editor: Editor | null
+  title: string
+  markdownMode: boolean
+  onModeChange: (markdown: boolean) => void
+  onHistory: () => void
+  onNewNote: () => void
+  onPreferences: () => void
+  onShortcuts: () => void
+  onNavigate: (pos: number) => void
+  preferences: WritingPreferences
+  onPreferencesChange: (value: WritingPreferences) => void
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -91,9 +83,7 @@ export function WorkspaceSidebar({
         </div>
         <div className="flex-1">
           <p className="text-sm font-semibold tracking-tight">QuickJot</p>
-          <p className="text-muted-foreground mt-0.5 text-[11px]">
-            A little space to think
-          </p>
+          <p className="text-muted-foreground mt-0.5 text-[11px]">A little space to think</p>
         </div>
         <Button
           variant="ghost"
@@ -134,10 +124,10 @@ export function WorkspaceSidebar({
               type="button"
               aria-pressed={!markdownMode}
               className={cn(
-                "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors",
+                'flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors',
                 !markdownMode
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? 'bg-background text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground',
               )}
               onClick={() => onModeChange(false)}
             >
@@ -148,10 +138,10 @@ export function WorkspaceSidebar({
               type="button"
               aria-pressed={markdownMode}
               className={cn(
-                "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors",
+                'flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors',
                 markdownMode
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? 'bg-background text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground',
               )}
               onClick={() => onModeChange(true)}
             >
@@ -221,9 +211,7 @@ export function WorkspaceSidebar({
           </div>
           <div className="flex-1">
             <p className="text-xs font-medium">Local & private</p>
-            <p className="text-muted-foreground text-[10px]">
-              Your note lives in its link
-            </p>
+            <p className="text-muted-foreground text-[10px]">Your note lives in its link</p>
           </div>
         </div>
         <div className="flex items-center justify-between border-t pt-2">
@@ -239,5 +227,5 @@ export function WorkspaceSidebar({
         </div>
       </div>
     </div>
-  );
+  )
 }
