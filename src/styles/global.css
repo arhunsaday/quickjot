@@ -532,6 +532,12 @@ button.qj-sidebar-item:hover {
   margin: 0;
   transition: color 180ms;
 }
+.qj-task-content > [data-node-view-content-react] > :first-child {
+  margin-top: 0;
+}
+.qj-task-content > [data-node-view-content-react] > :last-child {
+  margin-bottom: 0;
+}
 li[data-checked="true"] > .qj-task-row > .qj-task-content > [data-node-view-content-react] > p {
   color: var(--muted-foreground);
   text-decoration: line-through;
