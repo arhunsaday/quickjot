@@ -519,15 +519,16 @@ button.qj-sidebar-item:hover {
   width: 100%;
 }
 .qj-task-toggle {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
-  padding-top: 0.35em;
-  line-height: 1;
+  height: 1lh;
 }
 .qj-task-content {
   flex: 1;
   min-width: 0;
 }
-.qj-task-content > p {
+.qj-task-content > [data-node-view-content-react] > p {
   margin: 0;
   transition: color 180ms;
 }
